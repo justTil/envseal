@@ -44,9 +44,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/envseal"
-Repository = "https://github.com/yourusername/envseal.git"
-Issues = "https://github.com/yourusername/envseal/issues"
+Homepage = "https://envseal.org"
+Repository = "https://github.com/justtil/envseal.git"
+Issues = "https://github.com/justtil/envseal/issues"
 
 [project.scripts]
 envseal = "envseal.cli:main"
