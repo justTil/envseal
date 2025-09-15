@@ -1,0 +1,23 @@
+# Lock file for exact dependency versions
+# Generated from pip freeze output
+# Use: pip install -r requirements-lock.txt
+
+certifi==2025.8.3
+cffi==2.0.0
+charset-normalizer==3.4.3
+cryptography==45.0.7
+idna==3.10
+iniconfig==2.1.0
+jaraco.classes==3.4.0
+jaraco.context==6.0.1
+jaraco.functools==4.3.0
+keyring==25.6.0
+more-itertools==10.8.0
+packaging==25.0
+pluggy==1.6.0
+pycparser==2.23
+Pygments==2.19.2
+pytest==8.4.2
+python-dotenv==1.1.1
+requests==2.32.5
+urllib3==2.5.0
