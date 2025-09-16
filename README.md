@@ -1,4 +1,4 @@
-![Logo and banner for the envseal python package](https://raw.githubusercontent.com/justtil/repo/main/docs/header.png)
+![Logo and banner for the envseal python package](https://raw.githubusercontent.com/justtil/envseal/main/docs/header.png)
 # EnvSeal
 
 **Encrypt sensitive values in environment files using AES-GCM**
