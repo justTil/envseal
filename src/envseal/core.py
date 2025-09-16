@@ -7,6 +7,7 @@ import keyring
 import json
 import base64
 import getpass
+import re
 from enum import Enum
 from typing import Optional, Union, Dict, Any
 from pathlib import Path
@@ -242,6 +243,114 @@ def store_passphrase_in_keyring(
         keyring.set_password(app_name, key_alias, passphrase)
     except Exception as e:
         raise EnvSealError(f"Failed to store passphrase in keyring: {e}")
+
+
+def seal_file(
+    file_path: Union[str, Path],
+    passphrase: bytes,
+    output_path: Optional[Union[str, Path]] = None,
+    prefix_only: bool = False,
+) -> int:
+    """
+    Encrypt values in an environment file (key=value format).
+
+    Args:
+        file_path: Path to the environment file to process
+        passphrase: Encryption passphrase
+        output_path: Output file path (if None, overwrites input file)
+        prefix_only: If True, only encrypt values that already start with TOKEN_PREFIX
+
+    Returns:
+        int: Number of values that were encrypted/re-encrypted
+
+    Raises:
+        EnvSealError: If file operations or encryption fails
+    """
+    file_path = Path(file_path)
+    if not file_path.exists():
+        raise EnvSealError(f"File not found: {file_path}")
+
+    if output_path is None:
+        output_path = file_path
+    else:
+        output_path = Path(output_path)
+
+    try:
+        # Read the file
+        content = file_path.read_text(encoding="utf-8")
+        lines = content.splitlines()
+
+        modified_count = 0
+        processed_lines = []
+
+        # Pattern to match key=value lines (allowing for whitespace)
+        env_pattern = re.compile(r"^(\s*)([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$")
+
+        for line in lines:
+            match = env_pattern.match(line)
+
+            if match:
+                indent, key, value = match.groups()
+
+                # Remove quotes if present
+                original_value = value
+                if (value.startswith('"') and value.endswith('"')) or (
+                    value.startswith("'") and value.endswith("'")
+                ):
+                    value = value[1:-1]
+                    quoted = True
+                else:
+                    quoted = False
+
+                should_encrypt = False
+
+                if prefix_only:
+                    # Only encrypt if it already starts with our prefix
+                    if value.startswith(TOKEN_PREFIX):
+                        should_encrypt = True
+                        # First decrypt, then re-encrypt
+                        try:
+                            decrypted = unseal(value, passphrase)
+                            value = decrypted.decode("utf-8")
+                        except EnvSealError as e:
+                            raise EnvSealError(
+                                f"Failed to decrypt existing value for {key}: {e}"
+                            )
+                else:
+                    # Encrypt all values except those already encrypted
+                    if not value.startswith(TOKEN_PREFIX) and value.strip():
+                        should_encrypt = True
+
+                if should_encrypt:
+                    # Encrypt the value
+                    encrypted_value = seal(value, passphrase)
+
+                    # Preserve quoting if original was quoted
+                    if quoted:
+                        encrypted_value = f'"{encrypted_value}"'
+
+                    processed_lines.append(f"{indent}{key}={encrypted_value}")
+                    modified_count += 1
+                else:
+                    # Keep the line as-is
+                    processed_lines.append(line)
+            else:
+                # Not a key=value line, keep as-is
+                processed_lines.append(line)
+
+        # Write the output
+        output_content = "\n".join(processed_lines)
+        if content.endswith("\n"):
+            output_content += "\n"
+
+        output_path.write_text(output_content, encoding="utf-8")
+
+        return modified_count
+
+    except Exception as e:
+        if isinstance(e, EnvSealError):
+            raise
+        raise EnvSealError(f"Failed to process file {file_path}: {e}")
 
 
 def load_sealed_env(

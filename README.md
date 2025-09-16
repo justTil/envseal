@@ -11,7 +11,8 @@ EnvSeal allows you to store encrypted values in your environment files (like `.e
 - 🐍 **Easy Python Integration**: Works seamlessly with python-dotenv
 - 💻 **Cross-Platform**: Works on Windows, macOS, and Linux
 - 🛠️ **CLI & Library**: Use from command line or import as a Python library
-- 📁 **No External Dependencies**: Only requires cryptography and optional keyring/python-dotenv
+- 📁 **Bulk File Processing**: Encrypt all values in a file or only re-encrypt existing sealed values
+- 🔍 **No External Dependencies**: Only requires cryptography and optional keyring/python-dotenv
 
 ## Installation
 
@@ -46,7 +47,23 @@ export ENVSEAL_PASSPHRASE="my-super-secret-passphrase"
 envseal seal "my-database-password" --passphrase-source=env_var
 ```
 
-### 2. Add to your .env file
+### 2. Encrypt an entire file
+
+```bash
+# Encrypt all values in a .env file
+envseal seal-file .env
+
+# Only re-encrypt values that are already sealed (useful for key rotation)
+envseal seal-file .env --prefix-only
+
+# Create a backup before modifying
+envseal seal-file .env --backup
+
+# Output to a different file
+envseal seal-file .env --output .env.sealed
+```
+
+### 3. Add to your .env file
 
 ```env
 DATABASE_URL=postgresql://user:password@localhost/db
@@ -54,7 +71,7 @@ DB_PASSWORD=ENC[v1]:eyJzIjoiNnZ...
 API_KEY=ENC[v1]:eyJzIjoiOXR...
 ```
 
-### 3. Use in your Python application
+### 4. Use in your Python application
 
 ```python
 import os
@@ -79,32 +96,6 @@ db_password = os.environ["DB_PASSWORD"]
 ## Usage Examples
 
 ### CLI Usage
-
-#### Encrypt values
-```bash
-# Store passphrase in keyring (recommended)
-envseal store-passphrase "your-master-passphrase"
-
-# Encrypt a value using keyring passphrase
-envseal seal "sensitive-data"
-
-# Encrypt using environment variable
-export ENVSEAL_PASSPHRASE="your-master-passphrase"
-envseal seal "sensitive-data" --passphrase-source=env_var
-
-# Encrypt using .env file
-echo "ENVSEAL_PASSPHRASE=your-master-passphrase" > .passphrase.env
-envseal seal "sensitive-data" --passphrase-source=dotenv --dotenv-file=.passphrase.env
-```
-
-#### Decrypt values
-```bash
-# Decrypt using keyring
-envseal unseal "ENC[v1]:eyJzIjoiNnZ..."
-
-# Decrypt using other sources
-envseal unseal "ENC[v1]:eyJzIjoiNnZ..." --passphrase-source=env_var
-```
 
 #### Load environment files
 ```bash
@@ -131,6 +122,37 @@ print(token)  # ENC[v1]:eyJzIjoiNnZ...
 # Decrypt
 plaintext = unseal(token, passphrase)
 print(plaintext.decode())  # my-secret-value
+```
+
+#### File encryption
+```python
+from envseal import seal_file, get_passphrase, PassphraseSource
+
+# Get passphrase
+passphrase = get_passphrase(PassphraseSource.KEYRING)
+
+# Encrypt all values in a file
+modified_count = seal_file(
+    file_path=".env",
+    passphrase=passphrase,
+    prefix_only=False  # Encrypt all values
+)
+print(f"Encrypted {modified_count} values")
+
+# Only re-encrypt already sealed values (key rotation)
+modified_count = seal_file(
+    file_path=".env",
+    passphrase=passphrase,
+    prefix_only=True  # Only re-encrypt existing sealed values
+)
+print(f"Re-encrypted {modified_count} sealed values")
+
+# Output to different file
+seal_file(
+    file_path=".env",
+    passphrase=passphrase,
+    output_path=".env.sealed"
+)
 ```
 
 #### Working with .env files
@@ -198,6 +220,47 @@ else:
     db_password = raw_password
 ```
 
+## File Processing
+
+The `seal-file` command processes environment files in key=value format and provides two modes:
+
+### Standard Mode (Default)
+Encrypts all unencrypted values in the file:
+
+```bash
+# Before
+DATABASE_URL=postgresql://user:secret@localhost/db
+API_KEY=abc123
+ALREADY_SEALED=ENC[v1]:eyJzIjoiNnZ...
+
+# After running: envseal seal-file .env
+DATABASE_URL=ENC[v1]:eyJzIjoiOXR...
+API_KEY=ENC[v1]:eyJzIjoiNnZ...
+ALREADY_SEALED=ENC[v1]:eyJzIjoiNnZ...  # Unchanged
+```
+
+### Prefix-Only Mode
+Only re-encrypts values that are already sealed (useful for key rotation):
+
+```bash
+# Before
+DATABASE_URL=postgresql://user:secret@localhost/db
+API_KEY=abc123
+ALREADY_SEALED=ENC[v1]:eyJzIjoiNnZ...
+
+# After running: envseal seal-file .env --prefix-only
+DATABASE_URL=postgresql://user:secret@localhost/db  # Unchanged
+API_KEY=abc123  # Unchanged
+ALREADY_SEALED=ENC[v1]:eyJzIjoiOXR...  # Re-encrypted with new passphrase
+```
+
+### File Processing Features
+- **Preserves formatting**: Maintains indentation, comments, and empty lines
+- **Handles quotes**: Preserves single and double quotes around values
+- **Backup support**: Create backups before modification with `--backup`
+- **Output control**: Write to different file with `--output`
+- **Error handling**: Detailed error messages for malformed files or encryption failures
+
 ## Passphrase Management
 
 EnvSeal supports multiple ways to provide the master passphrase:
@@ -249,8 +312,44 @@ passphrase = get_passphrase(
 1. **Use OS Keyring**: Store your master passphrase in the OS keyring for maximum security
 2. **Separate Passphrase Storage**: Never store the passphrase in the same file as encrypted values
 3. **Environment-Specific Keys**: Use different passphrases for different environments
-4. **Regular Rotation**: Rotate your master passphrase periodically
+4. **Regular Rotation**: Rotate your master passphrase periodically using `--prefix-only` mode
 5. **Access Control**: Limit access to systems that can decrypt your values
+6. **Backup Strategy**: Always backup your files before bulk encryption operations
+
+## Use Cases
+
+### Initial Setup
+```bash
+# 1. Store your master passphrase
+envseal store-passphrase "your-secure-passphrase"
+
+# 2. Encrypt your existing .env file
+envseal seal-file .env --backup
+
+# 3. Your secrets are now encrypted!
+```
+
+### Key Rotation
+```bash
+# 1. Update your passphrase in keyring
+envseal store-passphrase "new-secure-passphrase"
+
+# 2. Re-encrypt only the sealed values
+envseal seal-file .env --prefix-only --backup
+
+# 3. All sealed values now use the new passphrase
+```
+
+### Selective Encryption
+```bash
+# If you have a mixed file with some values that should remain plain:
+# 1. First, manually encrypt only sensitive values
+envseal seal "sensitive-password"
+# Copy the output to your .env file manually
+
+# 2. Then use prefix-only mode for future key rotations
+envseal seal-file .env --prefix-only
+```
 
 ## API Reference
 
@@ -261,6 +360,9 @@ Encrypt plaintext using AES-GCM.
 
 #### `unseal(token, passphrase) -> bytes`
 Decrypt an encrypted token.
+
+#### `seal_file(file_path, passphrase, output_path=None, prefix_only=False) -> int`
+Encrypt values in an environment file. Returns the number of values encrypted.
 
 #### `get_passphrase(source, **kwargs) -> bytes`
 Get passphrase from various sources.
@@ -314,9 +416,59 @@ MIT License - see LICENSE file for details.
 
 ## Changelog
 
+### 0.2.0
+- Added `seal-file` command for bulk file encryption
+- Added `--prefix-only` mode for selective re-encryption
+- Added backup and output file options
+- Enhanced file processing with quote and formatting preservation
+
 ### 0.1.0
 - Initial release
 - AES-GCM encryption
 - Multiple passphrase sources
 - CLI and library interfaces
-- python-dotenv integration
+- python-dotenv integration Encrypt values
+```bash
+# Store passphrase in keyring (recommended)
+envseal store-passphrase "your-master-passphrase"
+
+# Encrypt a value using keyring passphrase
+envseal seal "sensitive-data"
+
+# Encrypt using environment variable
+export ENVSEAL_PASSPHRASE="your-master-passphrase"
+envseal seal "sensitive-data" --passphrase-source=env_var
+
+# Encrypt using .env file
+echo "ENVSEAL_PASSPHRASE=your-master-passphrase" > .passphrase.env
+envseal seal "sensitive-data" --passphrase-source=dotenv --dotenv-file=.passphrase.env
+```
+
+#### Encrypt files
+```bash
+# Encrypt all values in a .env file
+envseal seal-file .env
+
+# Only re-encrypt already sealed values (for key rotation)
+envseal seal-file .env --prefix-only
+
+# Create backup before modifying
+envseal seal-file .env --backup
+
+# Output to different file
+envseal seal-file .env --output .env.encrypted
+
+# Use different passphrase source
+envseal seal-file .env --passphrase-source=env_var
+```
+
+#### Decrypt values
+```bash
+# Decrypt using keyring
+envseal unseal "ENC[v1]:eyJzIjoiNnZ..."
+
+# Decrypt using other sources
+envseal unseal "ENC[v1]:eyJzIjoiNnZ..." --passphrase-source=env_var
+```
+
+####
