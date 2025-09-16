@@ -416,7 +416,7 @@ Load and apply environment variables to `os.environ`.
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/envseal.git
+git clone https://github.com/justtil/envseal.git
 cd envseal
 
 # Install in development mode
