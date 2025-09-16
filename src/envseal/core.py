@@ -258,7 +258,7 @@ def seal_file(
         file_path: Path to the environment file to process
         passphrase: Encryption passphrase
         output_path: Output file path (if None, overwrites input file)
-        prefix_only: If True, only encrypt values that already start with TOKEN_PREFIX
+        prefix_only: If True, only encrypt values that start with TOKEN_PREFIX (treating it as a marker)
 
     Returns:
         int: Number of values that were encrypted/re-encrypted
@@ -305,21 +305,35 @@ def seal_file(
                 should_encrypt = False
 
                 if prefix_only:
-                    # Only encrypt if it already starts with our prefix
+                    # Only encrypt if it starts with our prefix (treating prefix as a marker)
                     if value.startswith(TOKEN_PREFIX):
                         should_encrypt = True
-                        # First decrypt, then re-encrypt
+
+                        # Check if it's already properly encrypted
                         try:
+                            # Try to decrypt - if successful, it's already encrypted, so re-encrypt
                             decrypted = unseal(value, passphrase)
                             value = decrypted.decode("utf-8")
-                        except EnvSealError as e:
-                            raise EnvSealError(
-                                f"Failed to decrypt existing value for {key}: {e}"
-                            )
+                        except EnvSealError:
+                            # If decryption fails, treat everything after TOKEN_PREFIX as plaintext
+                            # This handles cases like: port=ENC[v1]:5433 where 5433 is not encrypted
+                            value = value[len(TOKEN_PREFIX) :]
                 else:
-                    # Encrypt all values except those already encrypted
-                    if not value.startswith(TOKEN_PREFIX) and value.strip():
-                        should_encrypt = True
+                    # Encrypt all values except those already properly encrypted
+                    if value.strip():
+                        # Check if it's already properly encrypted
+                        if value.startswith(TOKEN_PREFIX):
+                            try:
+                                # Try to decrypt - if successful, it's already encrypted
+                                unseal(value, passphrase)
+                                should_encrypt = False  # Already encrypted, skip
+                            except EnvSealError:
+                                # Not properly encrypted, so encrypt it
+                                should_encrypt = True
+                                value = value[len(TOKEN_PREFIX) :]
+                        else:
+                            # Not encrypted at all
+                            should_encrypt = True
 
                 if should_encrypt:
                     # Encrypt the value
