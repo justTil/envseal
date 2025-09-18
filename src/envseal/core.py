@@ -29,7 +29,7 @@ except ImportError:
 
 
 APP_NAME = "envseal"
-KEY_ALIAS = "master_v1"
+KEY_ALIAS = "envseal_v1"
 TOKEN_PREFIX = "ENC[v1]:"
 
 
@@ -293,7 +293,6 @@ def seal_file(
                 indent, key, value = match.groups()
 
                 # Remove quotes if present
-                original_value = value
                 if (value.startswith('"') and value.endswith('"')) or (
                     value.startswith("'") and value.endswith("'")
                 ):
@@ -345,6 +344,109 @@ def seal_file(
 
                     processed_lines.append(f"{indent}{key}={encrypted_value}")
                     modified_count += 1
+                else:
+                    # Keep the line as-is
+                    processed_lines.append(line)
+            else:
+                # Not a key=value line, keep as-is
+                processed_lines.append(line)
+
+        # Write the output
+        output_content = "\n".join(processed_lines)
+        if content.endswith("\n"):
+            output_content += "\n"
+
+        output_path.write_text(output_content, encoding="utf-8")
+
+        return modified_count
+
+    except Exception as e:
+        if isinstance(e, EnvSealError):
+            raise
+        raise EnvSealError(f"Failed to process file {file_path}: {e}")
+
+
+def unseal_file(
+    file_path: Union[str, Path],
+    passphrase: bytes,
+    output_path: Optional[Union[str, Path]] = None,
+    prefix_only: bool = False,
+) -> int:
+    """
+    Decrypt encrypted values in an environment file (key=value format).
+
+    Args:
+        file_path: Path to the environment file to process
+        passphrase: Decryption passphrase
+        output_path: Output file path (if None, overwrites input file)
+        prefix_only: If True, only decrypt values that start with TOKEN_PREFIX
+
+    Returns:
+        int: Number of values that were decrypted
+
+    Raises:
+        EnvSealError: If file operations or decryption fails
+    """
+    file_path = Path(file_path)
+    if not file_path.exists():
+        raise EnvSealError(f"File not found: {file_path}")
+
+    if output_path is None:
+        output_path = file_path
+    else:
+        output_path = Path(output_path)
+
+    try:
+        # Read the file
+        content = file_path.read_text(encoding="utf-8")
+        lines = content.splitlines()
+
+        modified_count = 0
+        processed_lines = []
+
+        # Pattern to match key=value lines (allowing for whitespace)
+        env_pattern = re.compile(r"^(\s*)([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$")
+
+        for line in lines:
+            match = env_pattern.match(line)
+
+            if match:
+                indent, key, value = match.groups()
+
+                # Remove quotes if present
+                if (value.startswith('"') and value.endswith('"')) or (
+                    value.startswith("'") and value.endswith("'")
+                ):
+                    value = value[1:-1]
+                    quoted = True
+                else:
+                    quoted = False
+
+                should_decrypt = False
+
+                if prefix_only:
+                    # Only decrypt if it starts with our prefix
+                    if value.startswith(TOKEN_PREFIX):
+                        should_decrypt = True
+                else:
+                    # Decrypt all values that start with TOKEN_PREFIX
+                    if value.startswith(TOKEN_PREFIX):
+                        should_decrypt = True
+
+                if should_decrypt:
+                    try:
+                        # Decrypt the value
+                        decrypted_bytes = unseal(value, passphrase)
+                        decrypted_value = decrypted_bytes.decode("utf-8")
+
+                        # Preserve quoting if original was quoted
+                        if quoted:
+                            decrypted_value = f'"{decrypted_value}"'
+
+                        processed_lines.append(f"{indent}{key}={decrypted_value}")
+                        modified_count += 1
+                    except EnvSealError as e:
+                        raise EnvSealError(f"Failed to decrypt {key}: {e}")
                 else:
                     # Keep the line as-is
                     processed_lines.append(line)
