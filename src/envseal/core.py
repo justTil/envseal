@@ -6,6 +6,7 @@ import os
 import keyring
 import json
 import base64
+import binascii
 import getpass
 import re
 from enum import Enum
@@ -207,7 +208,7 @@ def unseal(token: str, passphrase: bytes) -> bytes:
         nonce = base64.b64decode(blob["n"])
         ciphertext = base64.b64decode(blob["c"])
 
-    except (KeyError, json.JSONDecodeError, base64.binascii.Error) as e:
+    except (KeyError, json.JSONDecodeError, binascii.Error) as e:
         raise EnvSealError(f"Malformed token: {e}")
 
     try:
