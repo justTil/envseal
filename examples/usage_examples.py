@@ -1,7 +1,7 @@
 """
-Envseal Usage Examples
+EnvSeal Usage Examples
 
-This file demonstrates various ways to use Envseal in your Python applications.
+This file demonstrates various ways to use EnvSeal in your Python applications.
 """
 
 import os
@@ -288,7 +288,7 @@ settings = Settings()
 
 
 if __name__ == "__main__":
-    print("Envseal Usage Examples")
+    print("EnvSeal Usage Examples")
     print("=" * 50)
     print()
 
