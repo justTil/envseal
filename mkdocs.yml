@@ -1,0 +1,65 @@
+site_name: envseal
+site_description: Documentation for envseal
+site_url: https://justTil.github.io/envseal/
+repo_url: https://github.com/justTil/envseal
+repo_name: justTil/envseal
+
+theme:
+  name: material
+  logo: assets/logo.png
+  favicon: assets/favicon.png
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - version.integrate
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Usage: usage.md
+  # - API Reference: api.md
+  - Changelog: changelog.md
+
+plugins:
+  - search
+  - mike
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google   # or "numpy"/"sphinx"
+            show_root_full_path: false
+            show_source: true
+            separate_signature: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.snippets
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/justTil/envseal
+
+extra_css:
+  - stylesheets/extra.css

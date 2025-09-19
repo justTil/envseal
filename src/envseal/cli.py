@@ -6,6 +6,7 @@ import sys
 import argparse
 from pathlib import Path
 
+
 from .core import (
     seal,
     unseal,
@@ -14,6 +15,7 @@ from .core import (
     load_sealed_env,
     apply_sealed_env,
     seal_file,
+    unseal_file,
     PassphraseSource,
     EnvSealError,
 )
@@ -44,7 +46,7 @@ def create_parser() -> argparse.ArgumentParser:
     )
     store_parser.add_argument("passphrase", help="Passphrase to store")
     store_parser.add_argument("--app-name", default="envseal", help="Application name")
-    store_parser.add_argument("--key-alias", default="master_v1", help="Key alias")
+    store_parser.add_argument("--key-alias", default="envseal_v1", help="Key alias")
 
     # Load env command
     load_parser = subparsers.add_parser(
@@ -85,6 +87,31 @@ def create_parser() -> argparse.ArgumentParser:
         help="Create a backup of the original file before modifying",
     )
     add_passphrase_args(seal_file_parser)
+
+    # Unseal file command
+    unseal_file_parser = subparsers.add_parser(
+        "unseal-file", help="Decrypt values in an environment file"
+    )
+    unseal_file_parser.add_argument(
+        "file_path", type=Path, help="Path to the environment file"
+    )
+    unseal_file_parser.add_argument(
+        "--prefix-only",
+        action="store_true",
+        help="Only decrypt values that start with the EnvSeal prefix",
+    )
+    unseal_file_parser.add_argument(
+        "--output",
+        "-o",
+        type=Path,
+        help="Output file path (default: overwrite input file)",
+    )
+    unseal_file_parser.add_argument(
+        "--backup",
+        action="store_true",
+        help="Create a backup of the original file before modifying",
+    )
+    add_passphrase_args(unseal_file_parser)
 
     return parser
 
@@ -241,6 +268,41 @@ def cmd_seal_file(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def cmd_unseal_file(args: argparse.Namespace) -> None:
+    """Handle unseal-file command"""
+    try:
+        passphrase = get_passphrase_from_args(args)
+
+        # Determine output path
+        output_path = args.output if args.output else args.file_path
+
+        # Create backup if requested
+        if args.backup and output_path == args.file_path:
+            backup_path = Path(f"{args.file_path}.backup")
+            backup_path.write_text(args.file_path.read_text())
+            print(f"Backup created: {backup_path}")
+
+        # Unseal the file
+        modified_count = unseal_file(
+            file_path=args.file_path,
+            passphrase=passphrase,
+            output_path=output_path,
+            prefix_only=args.prefix_only,
+        )
+
+        if modified_count == 0:
+            if args.prefix_only:
+                print("No encrypted values with EnvSeal prefix found to decrypt.")
+            else:
+                print("No encrypted values found to decrypt.")
+        else:
+            print(f"Successfully decrypted {modified_count} value(s) in {output_path}")
+
+    except EnvSealError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
 def main() -> None:
     """Main CLI entry point"""
     parser = create_parser()
@@ -260,6 +322,8 @@ def main() -> None:
         cmd_load_env(args)
     elif args.command == "seal-file":
         cmd_seal_file(args)
+    elif args.command == "unseal-file":
+        cmd_unseal_file(args)
     else:
         parser.print_help()
         sys.exit(1)
