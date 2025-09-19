@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
 authors = [
-    { name = "Your Name", email = "your.email@example.com" },
+    { name = "Til Schwarze", email = "tschwarze@envseal.org" },
 ]
 keywords = ["encryption", "environment", "secrets", "security"]
 classifiers = [
@@ -44,9 +44,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://envseal.org"
-Repository = "https://github.com/justtil/envseal.git"
-Issues = "https://github.com/justtil/envseal/issues"
+Homepage = "https://github.com/justTil/envseal"
+Documentation = "https://justTil.github.io/envseal/"
+Issues = "https://github.com/justTil/envseal/issues"
 
 [project.scripts]
 envseal = "envseal.cli:main"
