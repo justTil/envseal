@@ -69,6 +69,14 @@ The output will be your database password in plain text:
 my-database-password
 ```
 
+## Seal/Unseal with environment variable​
+```bash  
+export ENVSEAL_PASSPHRASE="my-super-secret-passphrase"
+```
+```bash
+envseal  seal  "my-database-password"  --passphrase-source=env_var
+```
+
 ## Advanced Usage
 
 To find out how to bulk seal/unseal many properties at once and how EnvSeal can be used directly in Python code, go to the Usage section.
