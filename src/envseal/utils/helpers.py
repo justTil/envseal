@@ -6,7 +6,7 @@ import os
 from typing import Dict, List, Optional, Union
 from pathlib import Path
 
-from ..core import TOKEN_PREFIX, unseal, get_passphrase, PassphraseSource, EnvsealError
+from ..core import TOKEN_PREFIX, unseal, get_passphrase, PassphraseSource, EnvSealError
 
 
 def is_sealed_value(value: str) -> bool:
@@ -50,7 +50,7 @@ def bulk_unseal(
         dict: Dictionary with sealed values unsealed
 
     Raises:
-        EnvsealError: If unsealing fails and skip_errors is False
+        EnvSealError: If unsealing fails and skip_errors is False
     """
     result = {}
 
@@ -59,11 +59,11 @@ def bulk_unseal(
             try:
                 unsealed = unseal(value, passphrase)
                 result[key] = unsealed.decode("utf-8")
-            except EnvsealError as e:
+            except EnvSealError as e:
                 if skip_errors:
                     result[key] = value  # Keep original value
                 else:
-                    raise EnvsealError(f"Failed to unseal {key}: {e}")
+                    raise EnvSealError(f"Failed to unseal {key}: {e}")
         else:
             result[key] = value
 
@@ -78,23 +78,23 @@ def validate_env_file(path: Union[str, Path]) -> None:
         path: Path to environment file
 
     Raises:
-        EnvsealError: If file doesn't exist or isn't readable
+        EnvSealError: If file doesn't exist or isn't readable
     """
     env_path = Path(path)
 
     if not env_path.exists():
-        raise EnvsealError(f"Environment file not found: {path}")
+        raise EnvSealError(f"Environment file not found: {path}")
 
     if not env_path.is_file():
-        raise EnvsealError(f"Path is not a file: {path}")
+        raise EnvSealError(f"Path is not a file: {path}")
 
     try:
         with open(env_path, "r") as f:
             f.read(1)  # Try to read one character
     except PermissionError:
-        raise EnvsealError(f"Permission denied reading file: {path}")
+        raise EnvSealError(f"Permission denied reading file: {path}")
     except Exception as e:
-        raise EnvsealError(f"Error reading file {path}: {e}")
+        raise EnvSealError(f"Error reading file {path}: {e}")
 
 
 def get_default_env_paths() -> List[Path]:
@@ -156,7 +156,7 @@ def auto_unseal_environ(
             try:
                 unsealed = unseal(value, passphrase)
                 env_vars[key] = unsealed.decode("utf-8")
-            except EnvsealError:
+            except EnvSealError:
                 # Skip values that fail to unseal
                 continue
         else:

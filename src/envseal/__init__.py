@@ -14,7 +14,7 @@ from .core import (
     get_passphrase,
     store_passphrase_in_keyring,
     apply_sealed_env,
-    EnvsealError,
+    EnvSealError,
     PassphraseSource,
     load_sealed_env,
 )
@@ -28,7 +28,7 @@ __all__ = [
     "get_passphrase",
     "store_passphrase_in_keyring",
     "apply_sealed_env",
-    "EnvsealError",
+    "EnvSealError",
     "PassphraseSource",
     "load_sealed_env",
 ]

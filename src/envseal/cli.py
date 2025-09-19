@@ -17,7 +17,7 @@ from .core import (
     seal_file,
     unseal_file,
     PassphraseSource,
-    EnvsealError,
+    EnvSealError,
 )
 
 
@@ -167,7 +167,7 @@ def cmd_seal(args: argparse.Namespace) -> None:
         passphrase = get_passphrase_from_args(args)
         token = seal(args.value, passphrase)
         print(token)
-    except EnvsealError as e:
+    except EnvSealError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -178,7 +178,7 @@ def cmd_unseal(args: argparse.Namespace) -> None:
         passphrase = get_passphrase_from_args(args)
         plaintext = unseal(args.token, passphrase)
         print(plaintext.decode("utf-8"))
-    except EnvsealError as e:
+    except EnvSealError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -190,7 +190,7 @@ def cmd_store_passphrase(args: argparse.Namespace) -> None:
             args.passphrase, app_name=args.app_name, key_alias=args.key_alias
         )
         print(f"Passphrase stored in keyring for {args.app_name}:{args.key_alias}")
-    except EnvsealError as e:
+    except EnvSealError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -227,7 +227,7 @@ def cmd_load_env(args: argparse.Namespace) -> None:
                 if key and value is not None:
                     print(f"{key}={value}")
 
-    except EnvsealError as e:
+    except EnvSealError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -263,7 +263,7 @@ def cmd_seal_file(args: argparse.Namespace) -> None:
             action = "re-encrypted" if args.prefix_only else "encrypted"
             print(f"Successfully {action} {modified_count} value(s) in {output_path}")
 
-    except EnvsealError as e:
+    except EnvSealError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -298,7 +298,7 @@ def cmd_unseal_file(args: argparse.Namespace) -> None:
         else:
             print(f"Successfully decrypted {modified_count} value(s) in {output_path}")
 
-    except EnvsealError as e:
+    except EnvSealError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 

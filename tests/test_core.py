@@ -15,7 +15,7 @@ from envseal.core import (
     load_sealed_env,
     apply_sealed_env,
     PassphraseSource,
-    EnvsealError,
+    EnvSealError,
     TOKEN_PREFIX,
 )
 
@@ -51,21 +51,21 @@ class TestSealUnseal:
 
         token = seal(plaintext, passphrase1)
 
-        with pytest.raises(EnvsealError, match="Decryption failed"):
+        with pytest.raises(EnvSealError, match="Decryption failed"):
             unseal(token, passphrase2)
 
     def test_invalid_token_format(self):
         """Test that invalid token format raises error"""
         passphrase = b"test-passphrase"
 
-        with pytest.raises(EnvsealError, match="Invalid token format"):
+        with pytest.raises(EnvSealError, match="Invalid token format"):
             unseal("invalid-token", passphrase)
 
     def test_malformed_token(self):
         """Test that malformed token raises error"""
         passphrase = b"test-passphrase"
 
-        with pytest.raises(EnvsealError, match="Malformed token"):
+        with pytest.raises(EnvSealError, match="Malformed token"):
             unseal(f"{TOKEN_PREFIX}invalid-base64", passphrase)
 
 
@@ -94,12 +94,12 @@ class TestGetPassphrase:
 
     def test_env_var_missing(self):
         """Test missing environment variable"""
-        with pytest.raises(EnvsealError, match="Environment variable .* not found"):
+        with pytest.raises(EnvSealError, match="Environment variable .* not found"):
             get_passphrase(PassphraseSource.ENV_VAR, env_var_name="NONEXISTENT_VAR")
 
     def test_hardcoded_missing(self):
         """Test missing hardcoded passphrase"""
-        with pytest.raises(EnvsealError, match="hardcoded_passphrase must be provided"):
+        with pytest.raises(EnvSealError, match="hardcoded_passphrase must be provided"):
             get_passphrase(PassphraseSource.HARDCODED)
 
 
@@ -186,7 +186,7 @@ class TestErrorHandling:
 
         token = seal("test", passphrase1)
 
-        with pytest.raises(EnvsealError, match="Decryption failed"):
+        with pytest.raises(EnvSealError, match="Decryption failed"):
             unseal(token, passphrase2)
 
     def test_load_sealed_env_decryption_error(self):
@@ -203,7 +203,7 @@ class TestErrorHandling:
 
         try:
             # Try to decrypt with wrong passphrase
-            with pytest.raises(EnvsealError, match="Failed to unseal SECRET_VAR"):
+            with pytest.raises(EnvSealError, match="Failed to unseal SECRET_VAR"):
                 load_sealed_env(
                     dotenv_path=env_path,
                     passphrase_source=PassphraseSource.HARDCODED,
