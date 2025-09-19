@@ -140,6 +140,6 @@ dmypy.json
 .DS_Store
 Thumbs.db
 
-# EnvSeal specific
+# Envseal specific
 *.passphrase.env
 *.secrets.env

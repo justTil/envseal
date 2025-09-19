@@ -6,7 +6,7 @@
 
 **Encrypt sensitive values in environment files using AES-GCM**
 
-EnvSeal allows you to store encrypted values in your environment files (like `.env`) instead of plain-text secrets. It uses industry-standard AES-GCM encryption and provides flexible options for managing your master passphrase.
+Envseal allows you to store encrypted values in your environment files (like `.env`) instead of plain-text secrets. It uses industry-standard AES-GCM encryption and provides flexible options for managing your master passphrase.
 
 ## Installation
 ```bash
@@ -694,7 +694,7 @@ This approach is perfect when you have mixed environment files with both sensiti
 
 ## Passphrase Management
 
-EnvSeal supports multiple ways to provide the master passphrase:
+Envseal supports multiple ways to provide the master passphrase:
 
 ### 1. OS Keyring (Recommended)
 

@@ -34,8 +34,8 @@ KEY_ALIAS = "envseal_v1"
 TOKEN_PREFIX = "ENC[v1]:"
 
 
-class EnvSealError(Exception):
-    """Base exception for EnvSeal operations"""
+class EnvsealError(Exception):
+    """Base exception for Envseal operations"""
 
     pass
 
@@ -82,27 +82,27 @@ def get_passphrase(
         bytes: The passphrase as bytes
 
     Raises:
-        EnvSealError: If passphrase cannot be obtained from specified source
+        EnvsealError: If passphrase cannot be obtained from specified source
     """
     passphrase = None
 
     if source == PassphraseSource.KEYRING:
         if not HAS_KEYRING:
-            raise EnvSealError(
+            raise EnvsealError(
                 "keyring package not available. Install with: pip install keyring"
             )
         try:
             passphrase = keyring.get_password(app_name, key_alias)
             if not passphrase:
-                raise EnvSealError(
+                raise EnvsealError(
                     f"No passphrase found in keyring for {app_name}:{key_alias}"
                 )
         except Exception as e:
-            raise EnvSealError(f"Failed to get passphrase from keyring: {e}")
+            raise EnvsealError(f"Failed to get passphrase from keyring: {e}")
 
     elif source == PassphraseSource.HARDCODED:
         if not hardcoded_passphrase:
-            raise EnvSealError(
+            raise EnvsealError(
                 "hardcoded_passphrase must be provided when using HARDCODED source"
             )
         passphrase = hardcoded_passphrase
@@ -110,11 +110,11 @@ def get_passphrase(
     elif source == PassphraseSource.ENV_VAR:
         passphrase = os.environ.get(env_var_name)
         if not passphrase:
-            raise EnvSealError(f"Environment variable {env_var_name} not found")
+            raise EnvsealError(f"Environment variable {env_var_name} not found")
 
     elif source == PassphraseSource.DOTENV:
         if not HAS_DOTENV:
-            raise EnvSealError(
+            raise EnvsealError(
                 "python-dotenv package not available. Install with: pip install python-dotenv"
             )
 
@@ -128,18 +128,18 @@ def get_passphrase(
             passphrase = os.environ.get(dotenv_var_name)
 
         if not passphrase:
-            raise EnvSealError(f"Variable {dotenv_var_name} not found in .env file")
+            raise EnvsealError(f"Variable {dotenv_var_name} not found in .env file")
 
     elif source == PassphraseSource.PROMPT:
         try:
             passphrase = getpass.getpass(prompt_text)
             if not passphrase:
-                raise EnvSealError("Empty passphrase provided")
+                raise EnvsealError("Empty passphrase provided")
         except (KeyboardInterrupt, EOFError):
-            raise EnvSealError("Passphrase input cancelled")
+            raise EnvsealError("Passphrase input cancelled")
 
     else:
-        raise EnvSealError(f"Unknown passphrase source: {source}")
+        raise EnvsealError(f"Unknown passphrase source: {source}")
 
     return passphrase.encode("utf-8")
 
@@ -190,10 +190,10 @@ def unseal(token: str, passphrase: bytes) -> bytes:
         bytes: Decrypted plaintext
 
     Raises:
-        EnvSealError: If token is malformed or decryption fails
+        EnvsealError: If token is malformed or decryption fails
     """
     if not token.startswith(TOKEN_PREFIX):
-        raise EnvSealError(
+        raise EnvsealError(
             f"Invalid token format. Expected token to start with {TOKEN_PREFIX}"
         )
 
@@ -209,7 +209,7 @@ def unseal(token: str, passphrase: bytes) -> bytes:
         ciphertext = base64.b64decode(blob["c"])
 
     except (KeyError, json.JSONDecodeError, binascii.Error) as e:
-        raise EnvSealError(f"Malformed token: {e}")
+        raise EnvsealError(f"Malformed token: {e}")
 
     try:
         # Derive key and decrypt
@@ -218,7 +218,7 @@ def unseal(token: str, passphrase: bytes) -> bytes:
         return plaintext
 
     except InvalidTag:
-        raise EnvSealError("Decryption failed. Wrong passphrase or corrupted token.")
+        raise EnvsealError("Decryption failed. Wrong passphrase or corrupted token.")
 
 
 def store_passphrase_in_keyring(
@@ -233,17 +233,17 @@ def store_passphrase_in_keyring(
         key_alias: Key alias for keyring
 
     Raises:
-        EnvSealError: If keyring is not available or storage fails
+        EnvsealError: If keyring is not available or storage fails
     """
     if not HAS_KEYRING:
-        raise EnvSealError(
+        raise EnvsealError(
             "keyring package not available. Install with: pip install keyring"
         )
 
     try:
         keyring.set_password(app_name, key_alias, passphrase)
     except Exception as e:
-        raise EnvSealError(f"Failed to store passphrase in keyring: {e}")
+        raise EnvsealError(f"Failed to store passphrase in keyring: {e}")
 
 
 def seal_file(
@@ -265,11 +265,11 @@ def seal_file(
         int: Number of values that were encrypted/re-encrypted
 
     Raises:
-        EnvSealError: If file operations or encryption fails
+        EnvsealError: If file operations or encryption fails
     """
     file_path = Path(file_path)
     if not file_path.exists():
-        raise EnvSealError(f"File not found: {file_path}")
+        raise EnvsealError(f"File not found: {file_path}")
 
     if output_path is None:
         output_path = file_path
@@ -314,7 +314,7 @@ def seal_file(
                             # Try to decrypt - if successful, it's already encrypted, so re-encrypt
                             decrypted = unseal(value, passphrase)
                             value = decrypted.decode("utf-8")
-                        except EnvSealError:
+                        except EnvsealError:
                             # If decryption fails, treat everything after TOKEN_PREFIX as plaintext
                             # This handles cases like: port=ENC[v1]:5433 where 5433 is not encrypted
                             value = value[len(TOKEN_PREFIX) :]
@@ -327,7 +327,7 @@ def seal_file(
                                 # Try to decrypt - if successful, it's already encrypted
                                 unseal(value, passphrase)
                                 should_encrypt = False  # Already encrypted, skip
-                            except EnvSealError:
+                            except EnvsealError:
                                 # Not properly encrypted, so encrypt it
                                 should_encrypt = True
                                 value = value[len(TOKEN_PREFIX) :]
@@ -362,9 +362,9 @@ def seal_file(
         return modified_count
 
     except Exception as e:
-        if isinstance(e, EnvSealError):
+        if isinstance(e, EnvsealError):
             raise
-        raise EnvSealError(f"Failed to process file {file_path}: {e}")
+        raise EnvsealError(f"Failed to process file {file_path}: {e}")
 
 
 def unseal_file(
@@ -386,11 +386,11 @@ def unseal_file(
         int: Number of values that were decrypted
 
     Raises:
-        EnvSealError: If file operations or decryption fails
+        EnvsealError: If file operations or decryption fails
     """
     file_path = Path(file_path)
     if not file_path.exists():
-        raise EnvSealError(f"File not found: {file_path}")
+        raise EnvsealError(f"File not found: {file_path}")
 
     if output_path is None:
         output_path = file_path
@@ -446,8 +446,8 @@ def unseal_file(
 
                         processed_lines.append(f"{indent}{key}={decrypted_value}")
                         modified_count += 1
-                    except EnvSealError as e:
-                        raise EnvSealError(f"Failed to decrypt {key}: {e}")
+                    except EnvsealError as e:
+                        raise EnvsealError(f"Failed to decrypt {key}: {e}")
                 else:
                     # Keep the line as-is
                     processed_lines.append(line)
@@ -465,9 +465,9 @@ def unseal_file(
         return modified_count
 
     except Exception as e:
-        if isinstance(e, EnvSealError):
+        if isinstance(e, EnvsealError):
             raise
-        raise EnvSealError(f"Failed to process file {file_path}: {e}")
+        raise EnvsealError(f"Failed to process file {file_path}: {e}")
 
 
 def load_sealed_env(
@@ -487,10 +487,10 @@ def load_sealed_env(
         dict: Environment variables with encrypted values decrypted
 
     Raises:
-        EnvSealError: If dotenv is not available or decryption fails
+        EnvsealError: If dotenv is not available or decryption fails
     """
     if not HAS_DOTENV:
-        raise EnvSealError(
+        raise EnvsealError(
             "python-dotenv package not available. Install with: pip install python-dotenv"
         )
 
@@ -511,8 +511,8 @@ def load_sealed_env(
             try:
                 decrypted = unseal(value, passphrase)
                 result[key] = decrypted.decode("utf-8")
-            except EnvSealError as e:
-                raise EnvSealError(f"Failed to unseal {key}: {e}")
+            except EnvsealError as e:
+                raise EnvsealError(f"Failed to unseal {key}: {e}")
         else:
             result[key] = value
 
