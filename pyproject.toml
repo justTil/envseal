@@ -41,11 +41,13 @@ dev = [
     "isort",
     "flake8",
     "mypy",
+    "mkdocs>=1.5.0",
+    "mkdocs-material",
 ]
 
 [project.urls]
 Homepage = "https://github.com/justTil/envseal"
-Documentation = "https://justTil.github.io/envseal/"
+Documentation = "https://docs.envseal.org"
 Issues = "https://github.com/justTil/envseal/issues"
 
 [project.scripts]
