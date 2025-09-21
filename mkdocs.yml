@@ -37,7 +37,6 @@ nav:
 
 plugins:
   - search
-  - mike
   - mkdocstrings:
       handlers:
         python:
