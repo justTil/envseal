@@ -2,7 +2,7 @@
 envseal - Encrypt sensitive values in environment files using AES-GCM
 """
 
-__version__ = "0.3.0"
+__version__ = "1.0.0"
 __author__ = "Til Schwarze"
 __email__ = "tschwarze@envseal.org"
 
