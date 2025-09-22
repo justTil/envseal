@@ -19,7 +19,6 @@ from .core import (
     load_sealed_env,
 )
 
-__version__ = "0.1.0"
 __all__ = [
     "seal",
     "unseal",
