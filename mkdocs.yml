@@ -1,13 +1,13 @@
-site_name: envseal
-site_description: Documentation for envseal
-site_url: https://justTil.github.io/envseal/
+site_name: EnvSeal
+site_description: Documentation for EnvSeal
+site_url: https://docs.envseal.org/
 repo_url: https://github.com/justTil/envseal
 repo_name: justTil/envseal
 
 theme:
   name: material
   logo: assets/logo.png
-  favicon: assets/favicon.png
+  favicon: assets/logo.png
   features:
     - navigation.instant
     - navigation.tabs
@@ -41,7 +41,7 @@ plugins:
       handlers:
         python:
           options:
-            docstring_style: google   # or "numpy"/"sphinx"
+            docstring_style: google
             show_root_full_path: false
             show_source: true
             separate_signature: true
@@ -62,3 +62,4 @@ extra:
 
 extra_css:
   - stylesheets/extra.css
+

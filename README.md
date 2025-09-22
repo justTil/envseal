@@ -10,7 +10,7 @@ pip install envseal
 
 ## Links
 
-- **Documentation:** [Docs](https://justTil.github.io/envseal)
+- **Documentation:** [Docs](https://docs.envseal.org/)
 - **Source Code:** [GitHub](https://github.com/justTil/envseal)
 - **Package:** [PyPI](https://pypi.org/project/envseal/)
 

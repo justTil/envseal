@@ -10,9 +10,17 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
 authors = [{ name = "Til Schwarze", email = "tschwarze@envseal.org" }]
-keywords = ["encryption", "environment", "secrets", "security"]
+keywords = [
+    "encryption",
+    "environment",
+    "secrets",
+    "security",
+    "obfuscation",
+    "aes",
+    "aes-gcm",
+]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -22,6 +30,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Security :: Cryptography",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -41,6 +50,7 @@ dev = [
     "mypy",
     "mkdocs>=1.5.0",
     "mkdocs-material",
+    "mkdocstrings-python",
 ]
 cf_docs = ["mkdocs>=1.5.0", "mkdocs-material", "mkdocstrings-python"]
 
