@@ -2,81 +2,104 @@
 
 ## Installation and Setup
 
-After installing EnvSeal using pip in your Python environment (venv, conda, or global), you can use EnvSeal simply like any other command in the terminal. If you installed it in a virtual environment, make sure that environment is activated before running EnvSeal commands.
+After installing EnvSeal via pip, you can use it as a standard command-line tool. If you installed it in a virtual environment, ensure the environment is activated before running EnvSeal commands.
+
+---
 
 ## Quick Start
 
-### Encrypt a Value Using CLI with Keyring (Most Secure)
+### Encrypting Your First Value
 
-With your virtual environment (venv or conda) activated, store your passphrase in the system keyring.
+The most secure approach is to use EnvSeal with your system's keyring for passphrase management.
 
-> **Important:** Use a unique application name (`APP_NAME`) and key alias (`KEY_ALIAS`) for different projects.
-> 
-> Reusing the same values is acceptable during development, but for production it's best to choose distinct names to avoid sharing the same passphrase across projects.
+#### Step 1: Store Your Passphrase
 
-Run this command to store your passphrase in the keyring:
+Store your passphrase securely in the system keyring:
 ```bash
 envseal store-passphrase "your-passphrase" --app-name "my-app" --key-alias "my-key"
 ```
 
-> **Note:** When using custom `APP_NAME` and `KEY_ALIAS` variables, you must specify the same `APP_NAME` and `KEY_ALIAS` used for decryption later in your app. If you don't, **EnvSeal** falls back to its default keyring (if available). This default key would be unable to decrypt your properties, as it was not the key used to encrypt your secrets.
+!!! tip "Best Practices for App Names and Key Aliases"
+    - Use unique `APP_NAME` and `KEY_ALIAS` values for different projects
+    - Reusing values during development is acceptable
+    - In production, use distinct names to avoid sharing passphrases across projects
 
-The default values used by the keyring in EnvSeal are as follows:   
-- **APP_NAME:** envseal    
-- **KEY_ALIAS:** envseal_v1
+!!! warning "Remember Your Configuration"
+    When using custom `APP_NAME` and `KEY_ALIAS`, you **must** specify the same values during decryption. Otherwise, EnvSeal falls back to the default keyring, which cannot decrypt values encrypted with a different key.
 
-You can also save a passphrase to the keyring without specifying an app name or key alias (using defaults):
+**Default keyring values:**
+
+- **APP_NAME:** `envseal`
+- **KEY_ALIAS:** `envseal_v1`
+
+To use the default values, simply omit the flags:
 ```bash
 envseal store-passphrase "your-passphrase"
 ```
 
-#### Seal Your First Password
+#### Step 2: Encrypt a Value
 
-Now you can use the following command to seal (encrypt) your password:
+Encrypt your first secret using the `seal` command:
 ```bash
 envseal seal "my-database-password"
 ```
 
-The output will look like this:
-```bash
+**Output:**
+```
 ENC[v1]:eyJzIjogImZTUXArNmNLenllaXcxNldybU16c3c9PSIsICJuIjogIlFPcXFxeC9CUEhxRloyZzYiLCAiYyI6ICJmQk5RWWJ5MXBxeHJ1VzZFRGg3M09TMGN5b3NTNTFVV21RVXczVTAxV1Z6b1o2MXcifQ==
 ```
 
-The encrypted value is a JWT-encoded JSON text that, when decoded, looks like this:
+The encrypted output is a base64-encoded JSON payload containing:
+
+| Field | Name       | Description |
+|-------|------------|-------------|
+| `s`   | Salt       | Random value ensuring unique encrypted outputs for identical inputs |
+| `n`   | Nonce      | Single-use random value providing additional security per operation |
+| `c`   | Ciphertext | The encrypted data |
+
+??? example "Decoded Structure"
+    When decoded, the encrypted value contains:
 ```json
-{
-  "s": "fSQp+6cKzyeiw16WrmMzsw==",
-  "n": "QOqqqx/BPHqFZ2g6",
-  "c": "fBNQYby1pqxruW6EDh73OS0cyosS51UWmQUw3U01WVzoZ61w"
-}
+    {
+      "s": "fSQp+6cKzyeiw16WrmMzsw==",
+      "n": "QOqqqx/BPHqFZ2g6",
+      "c": "fBNQYby1pqxruW6EDh73OS0cyosS51UWmQUw3U01WVzoZ61w"
+    }
 ```
 
-| Field | Name | Description |
-|-------|------|-------------|
-| `s` | Salt | A random value used to ensure the same input produces different encrypted outputs each time |
-| `n` | Nonce | A random value used once per encryption operation to ensure security |
-| `c` | Ciphertext | The actual encrypted data |
+#### Step 3: Decrypt a Value
 
-#### Unseal Your First Password
-
-Now you can use the following command to unseal (decrypt) your password:
+Decrypt the value using the `unseal` command:
 ```bash
 envseal unseal "ENC[v1]:eyJzIjogImZTUXArNmNLenllaXcxNldybU16c3c9PSIsICJuIjogIlFPcXFxeC9CUEhxRloyZzYiLCAiYyI6ICJmQk5RWWJ5MXBxeHJ1VzZFRGg3M09TMGN5b3NTNTFVV21RVXczVTAxV1Z6b1o2MXcifQ=="
 ```
 
-The output will be your database password in plain text:
-```bash
+**Output:**
+```
 my-database-password
 ```
 
-## Seal/Unseal with environment variable​
-```bash  
-export ENVSEAL_PASSPHRASE="my-super-secret-passphrase"
-```
+---
+
+## Alternative: Using Environment Variables
+
+For environments where keyring access is unavailable, you can provide the passphrase via an environment variable:
 ```bash
-envseal  seal  "my-database-password"  --passphrase-source=env_var
+export ENVSEAL_PASSPHRASE="my-super-secret-passphrase"
+envseal seal "my-database-password" --passphrase-source=env_var
 ```
 
-## Advanced Usage
+!!! warning "Security Consideration"
+    Environment variables are less secure than keyring storage. Use this method only when keyring access is not available.
 
-To find out how to bulk seal/unseal many properties at once and how EnvSeal can be used directly in Python code, go to the Usage section.
+---
+
+## Next Steps
+
+Ready to explore more features? Learn how to:
+
+- Bulk encrypt and decrypt multiple values at once
+- Integrate EnvSeal directly into your Python code
+- Configure advanced encryption options
+
+Continue to the [Usage](usage.md) section for detailed instructions.
