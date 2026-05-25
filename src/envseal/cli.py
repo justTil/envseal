@@ -2,22 +2,21 @@
 Command-line interface for EnvSeal
 """
 
-import sys
 import argparse
+import sys
 from pathlib import Path
 
-
 from .core import (
-    seal,
-    unseal,
-    get_passphrase,
-    store_passphrase_in_keyring,
-    load_sealed_env,
-    apply_sealed_env,
-    seal_file,
-    unseal_file,
-    PassphraseSource,
     EnvSealError,
+    PassphraseSource,
+    apply_sealed_env,
+    get_passphrase,
+    load_sealed_env,
+    seal,
+    seal_file,
+    store_passphrase_in_keyring,
+    unseal,
+    unseal_file,
 )
 
 

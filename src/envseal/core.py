@@ -2,21 +2,21 @@
 Core functionality for EnvSeal - AES-GCM encryption for environment variables
 """
 
-import os
-import keyring
-import json
 import base64
 import binascii
 import getpass
+import json
+import os
 import re
 from enum import Enum
-from typing import Optional, Union, Dict, Any
 from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
-from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+import keyring
 from cryptography.exceptions import InvalidTag
-from dotenv import load_dotenv, dotenv_values
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+from dotenv import dotenv_values, load_dotenv
 
 try:
     HAS_KEYRING = True

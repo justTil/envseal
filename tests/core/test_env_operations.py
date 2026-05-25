@@ -6,9 +6,10 @@ import os
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+
 import pytest
 
-from envseal.core import load_sealed_env, apply_sealed_env, seal, EnvSealError
+from envseal.core import EnvSealError, apply_sealed_env, load_sealed_env, seal
 
 
 class TestEnvOperations:
@@ -51,8 +52,9 @@ class TestEnvOperations:
         """Test loading when no .env file exists"""
         # Create a temp directory and explicitly point to a non-existent file there
         # This avoids python-dotenv finding .env files in parent directories
-        from envseal.core import PassphraseSource
         import tempfile
+
+        from envseal.core import PassphraseSource
 
         with tempfile.TemporaryDirectory() as tmpdir:
             nonexistent_env = Path(tmpdir) / "nonexistent.env"

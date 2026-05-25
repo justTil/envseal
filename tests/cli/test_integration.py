@@ -3,11 +3,11 @@ Integration tests for CLI using subprocess
 """
 
 import os
+import subprocess
 import sys
 import tempfile
-import subprocess
 
-from envseal.core import seal, TOKEN_PREFIX
+from envseal.core import TOKEN_PREFIX, seal
 
 
 class TestCLIIntegration:

@@ -2,8 +2,9 @@
 Tests for CLI argument parsing functionality
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from envseal.cli import create_parser
 

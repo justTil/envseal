@@ -6,9 +6,10 @@ import os
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+
 import pytest
 
-from envseal.core import seal_file, unseal_file, seal, TOKEN_PREFIX, EnvSealError
+from envseal.core import TOKEN_PREFIX, EnvSealError, seal, seal_file, unseal_file
 
 
 class TestFileOperations:

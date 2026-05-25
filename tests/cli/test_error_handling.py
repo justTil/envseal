@@ -2,8 +2,8 @@
 Tests for CLI error handling
 """
 
-import sys
 import subprocess
+import sys
 
 
 class TestCLIErrorHandling:

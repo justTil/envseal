@@ -6,17 +6,18 @@ import os
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+
 import pytest
 
 from envseal.cli import (
-    cmd_seal,
-    cmd_unseal,
-    cmd_store_passphrase,
     cmd_load_env,
+    cmd_seal,
     cmd_seal_file,
+    cmd_store_passphrase,
+    cmd_unseal,
     cmd_unseal_file,
 )
-from envseal.core import seal, EnvSealError
+from envseal.core import EnvSealError, seal
 
 
 class TestCLICommands:

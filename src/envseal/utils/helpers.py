@@ -3,10 +3,10 @@ Helper utilities for EnvSeal
 """
 
 import os
-from typing import Dict, List, Optional, Union
 from pathlib import Path
+from typing import Dict, List, Optional, Union
 
-from ..core import TOKEN_PREFIX, unseal, get_passphrase, PassphraseSource, EnvSealError
+from ..core import TOKEN_PREFIX, EnvSealError, PassphraseSource, get_passphrase, unseal
 
 
 def is_sealed_value(value: str) -> bool:
