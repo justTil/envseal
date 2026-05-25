@@ -3,7 +3,8 @@ Tests for core encryption functionality
 """
 
 import pytest
-from envseal.core import seal, unseal, _kdf, TOKEN_PREFIX, EnvSealError
+
+from envseal.core import TOKEN_PREFIX, EnvSealError, _kdf, seal, unseal
 
 
 class TestEncryption:

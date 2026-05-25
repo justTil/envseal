@@ -4,16 +4,17 @@ Tests for core passphrase handling functionality
 
 import os
 import tempfile
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
 import pytest
 
 from envseal.core import (
-    get_passphrase,
-    store_passphrase_in_keyring,
-    PassphraseSource,
-    EnvSealError,
     APP_NAME,
     KEY_ALIAS,
+    EnvSealError,
+    PassphraseSource,
+    get_passphrase,
+    store_passphrase_in_keyring,
 )
 
 

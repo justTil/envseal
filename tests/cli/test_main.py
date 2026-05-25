@@ -3,6 +3,7 @@ Tests for CLI main function
 """
 
 from unittest.mock import patch
+
 import pytest
 
 from envseal.cli import main

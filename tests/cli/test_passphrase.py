@@ -3,6 +3,7 @@ Tests for CLI passphrase handling functionality
 """
 
 import os
+
 import pytest
 
 from envseal.cli import get_passphrase_from_args
